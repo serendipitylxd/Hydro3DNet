@@ -1,0 +1,7 @@
+# Build artifacts
+pcdet/ops/mamba/dist/
+dist/
+build/
+*.egg
+*.whl
+*.tar.gz
