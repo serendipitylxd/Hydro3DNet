@@ -122,8 +122,8 @@ Please consider citing our work as follows if it is helpful.
 ```
 
 ## Acknowledgments
-Voxel Mamba is based on [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) and [DSVT](https://github.com/Haiyang-W/DSVT).  
-We also thank the CenterPoint, TransFusion, OctFormer, Mamba, and HEDNet authors for their efforts.
+Hydro3DNet is based on [OpenPCDet](https://github.com/open-mmlab/OpenPCDet).  
+We also thank the CenterPoint, TransFusion, OctFormer, Mamba, and … authors for their efforts.
 
 
 
