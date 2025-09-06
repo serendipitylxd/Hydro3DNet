@@ -1,0 +1,73 @@
+DATASET: 'TROUTDataset'
+DATA_PATH: '../data/TROUT'
+
+POINT_CLOUD_RANGE: [0.0, 0.0, -5.12, 102.4, 102.4, 5.12]
+
+MAP_CLASS_TO_KITTI: {
+    #'Building': 'Pedestrian','Car','Van','Cyclist','Truck','Person_sitting',
+    'Building': 'Building',
+    'Fully_loaded_cargo_ship': 'Fully_loaded_cargo_ship',
+    'Fully_loaded_container_ship': 'Fully_loaded_container_ship',
+    'Lock_gate': 'Lock_gate',
+    'Tree': 'Tree',
+    'Unladen_cargo_ship': 'Unladen_cargo_ship',
+}
+
+DATA_SPLIT: {
+    'train': train,
+    'val': val,
+    'test': test
+}
+
+INFO_PATH: {
+    #'train': [TROUT_infos_train.pkl],
+    #'val': [TROUT_infos_val.pkl],
+    #'test': [TROUT_infos_test.pkl],
+    'train': [TROUT_infos_waterlevel_train.pkl],
+    'val': [TROUT_infos_waterlevel_val.pkl],
+    'test': [TROUT_infos_waterlevel_test.pkl],
+}
+
+POINT_FEATURE_ENCODING: {
+    encoding_type: absolute_coordinates_encoding,
+    used_feature_list: ['x', 'y', 'z', 'intensity'],
+    src_feature_list: ['x', 'y', 'z', 'intensity'],
+}
+
+DATA_AUGMENTOR:
+    DISABLE_AUG_LIST: ['placeholder']
+    AUG_CONFIG_LIST:
+        - NAME: gt_sampling
+          USE_ROAD_PLANE: False
+          DB_INFO_PATH:
+              - TROUT_dbinfos_train.pkl
+          PREPARE: {
+             filter_by_min_points: ['Building:5', 'Fully_loaded_cargo_ship:5', 'Fully_loaded_container_ship:5', 'Lock_gate:5', 'Tree:5', 'Unladen_cargo_ship:5'],
+          }
+
+          SAMPLE_GROUPS: ['Building:15', 'Fully_loaded_cargo_ship:15', 'Fully_loaded_container_ship:15', 'Lock_gate:15', 'Tree:15', 'Unladen_cargo_ship:15']
+          NUM_POINT_FEATURES: 4
+          DATABASE_WITH_FAKELIDAR: False
+          REMOVE_EXTRA_WIDTH: [0.0, 0.0, 0.0]
+          LIMIT_WHOLE_SCENE: True
+
+
+
+DATA_PROCESSOR:
+    - NAME: mask_points_and_boxes_outside_range
+      REMOVE_OUTSIDE_BOXES: True
+
+    - NAME: shuffle_points
+      SHUFFLE_ENABLED: {
+        'train': True,
+        'test': False
+      }
+
+    - NAME: transform_points_to_voxels
+      VOXEL_SIZE: [0.128, 0.128, 0.256]
+      #VOXEL_SIZE: [0.128, 0.128, 10.24]
+      MAX_POINTS_PER_VOXEL: 32
+      MAX_NUMBER_OF_VOXELS: {
+        'train': 160000,
+        'test': 160000
+      }
