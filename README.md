@@ -26,21 +26,21 @@ Test set
 |                                             | Present at | Stages | Speed(HZ) | Training time | Ship mAP_3D (test) | Infra mAP_3D (test) | download | 
 |---------------------------------------------|----------:|:-------:|:-------:|:-------:|:---------:|:-------:|:-------:|
 | [SECOND](tools/cfgs/trout_models/second.yaml)       |  Sensors’18  | one | 73.9 | 2.2 | 51.6 | 98.6 | [second_trout_64M](https://drive.google.com/file/d/1jsgBfjvD0Aa7_ywrZR7-zrOrc_WK_Yjz/view?usp=sharing) |
-| [PointPillar](tools/cfgs/trout_models/pointpillar.yaml)       |  CVPR’19  | one | 40.5 | 12.1 | 61.6 | 99.4 | [second_trout_64M](https://drive.google.com/file/d/1jsgBfjvD0Aa7_ywrZR7-zrOrc_WK_Yjz/view?usp=sharing) |
-| [PointRCNN](tools/cfgs/trout_models/pointrcnn.yaml)       |  CVPR’19   | one | 8.8 | 15.2 | 11.9 | 98.1 | [second_trout_64M](https://drive.google.com/file/d/1pvb9EPo3_H8-UnSLmZJdWA2UHRSIM_7j/view?usp=sharing) |
-| [Part-A2](tools/cfgs/trout_models/PartA2.yaml)       |  TPAMI’20  | one | 42.9 | 8.2 | 87.6 | 99.9 | [second_trout_64M](https://drive.google.com/file/d/19o4-mUYY5On1JtDl-NRErhAbzl6-5ex4/view?usp=sharing) |
-| [PV-RCNN](tools/cfgs/trout_models/pv_rcnn.yaml)       |  CVPR’20  | two | 9.1| 25.1 | 88.1 | 99.8 | [second_trout_64M](https://drive.google.com/file/d/11ld6ZocQq39RsFXT_AO4-qH0Qg38XDxd/view?usp=sharing) |
-| [CenterPoint](tools/cfgs/trout_models/centerpoint.yaml)       |  CVPR’21  | one | 57.9 | 0.9 | 84.5 | 99.9 | [second_trout_64M](https://drive.google.com/file/d/1HTjo-tgx9FAgt-r7qa1HQC6PZVeHxZyH/view?usp=sharing) |
-| [Voxel-RCNN](tools/cfgs/trout_models/voxel_rcnn.yaml)       |  AAAI’21 | two | 48.3 | 8.3 | 85.9 | 99.8 | [second_trout_64M](https://drive.google.com/file/d/16AIiDPQ5LtXAHIqoRkFwQwCbbk7r7ope/view?usp=sharing) |
-| [ST3D-SecondIOU](tools/cfgs/trout_models/second_iou.yaml)       |  CVPR’21  | two | 66.0 | 6.1 | 69.9 | 99.7 | [second_trout_64M](https://drive.google.com/file/d/1LueH43qkrOEObVPXwBzm5BjFzMOXc6Sh/view?usp=sharing) |
-| [PV-RCNN++](tools/cfgs/trout_models/pv_rcnn_plusplus.yaml)       |  IJCV’22   | two | 12.4 | 44.9 | 88.5 | 99.9 | [second_trout_64M](https://drive.google.com/file/d/1kCMnxVuFaLpKpMWynIiBbFY7-WKGXwyY/view?usp=sharing) |
-| [PillarNet](tools/cfgs/trout_models/pillarnet.yaml)       |  ECCV’22  | one | 73.9 | 10.5 | 88.1 | 99.8 | [second_trout_64M](https://drive.google.com/file/d/1-aJIIm57NVQayoL8dVOHsp0RsvEVvoi4/view?usp=sharing) |
-| [VoxelNext](tools/cfgs/trout_models/voxelnext.yaml)       |  CVPR’23  | one | 87.2| 3.9 | 85.7 | 99.9 | [second_trout_64M](https://drive.google.com/file/d/1cKq2eZvMW33U9FSmL-Mww67_X5cTREF6/view?usp=sharing) |
-| [DSVT-Voxel](tools/cfgs/trout_models/dsvt_voxel.yaml)       |  CVPR’23  | one | 6.8 | 62.4 | 54.7 | 95.5 | [second_trout_64M](https://drive.google.com/file/d/1ogt1wMTLQ1vDvJhzAiHGpQztLJH6wF_9/view?usp=sharing) |
-| [Lion-RWKV](tools/cfgs/trout_models/second_with_lion_rwkv_64dim)       |  NeurIPS’24  | one | 7.6 | 86.9 | 5.5 | 94.7 | [second_trout_64M](https://drive.google.com/file/d/1j6-VIsT_YAJLACLVLMxmxSK5cilgEnfV/view?usp=sharing) |
-| [Voxel-Mamba](tools/cfgs/trout_models/voxel_mamba.yaml)       |  NeurIPS’24  | one | 13.6 | 22.9 | 57.8 | 96.2 | [second_trout_64M](https://drive.google.com/file/d/1iIUocUJk-ijk2JOZxjbNGxWS-DdOtE3L/view?usp=sharing) |
-| [ScatterFormer](tools/cfgs/trout_models/scatterformer)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [second_trout_64M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
-| [Hydro3DNet(our)](tools/cfgs/trout_models/hydro3Dnet.yaml)       |  -   | two | 37.9 | 12.5 | 91.7 | 99.9 | [second_trout_64M](https://drive.google.com/file/d/1qNigiWF-3736sJ2FXcMmpVMW4iROBqnw/view?usp=sharing) |
+| [PointPillar](tools/cfgs/trout_models/pointpillar.yaml)       |  CVPR’19  | one | 40.5 | 12.1 | 61.6 | 99.4 | [pointpillar_trout_59M](https://drive.google.com/file/d/1jsgBfjvD0Aa7_ywrZR7-zrOrc_WK_Yjz/view?usp=sharing) |
+| [PointRCNN](tools/cfgs/trout_models/pointrcnn.yaml)       |  CVPR’19   | one | 8.8 | 15.2 | 11.9 | 98.1 | [pointrcnn_trout_48M](https://drive.google.com/file/d/1pvb9EPo3_H8-UnSLmZJdWA2UHRSIM_7j/view?usp=sharing) |
+| [Part-A2](tools/cfgs/trout_models/PartA2.yaml)       |  TPAMI’20  | one | 42.9 | 8.2 | 87.6 | 99.9 | [PartA2_trout_766M](https://drive.google.com/file/d/19o4-mUYY5On1JtDl-NRErhAbzl6-5ex4/view?usp=sharing) |
+| [PV-RCNN](tools/cfgs/trout_models/pv_rcnn.yaml)       |  CVPR’20  | two | 9.1| 25.1 | 88.1 | 99.8 | [pv_rcnn_trout_158M](https://drive.google.com/file/d/11ld6ZocQq39RsFXT_AO4-qH0Qg38XDxd/view?usp=sharing) |
+| [CenterPoint](tools/cfgs/trout_models/centerpoint.yaml)       |  CVPR’21  | one | 57.9 | 0.9 | 84.5 | 99.9 | [centerpoint_trout_94M](https://drive.google.com/file/d/1HTjo-tgx9FAgt-r7qa1HQC6PZVeHxZyH/view?usp=sharing) |
+| [Voxel-RCNN](tools/cfgs/trout_models/voxel_rcnn.yaml)       |  AAAI’21 | two | 48.3 | 8.3 | 85.9 | 99.8 | [voxel_rcnn_trout_89M](https://drive.google.com/file/d/16AIiDPQ5LtXAHIqoRkFwQwCbbk7r7ope/view?usp=sharing) |
+| [ST3D-SecondIOU](tools/cfgs/trout_models/second_iou.yaml)       |  CVPR’21  | two | 66.0 | 6.1 | 69.9 | 99.7 | [second_iou_trout_144M](https://drive.google.com/file/d/1LueH43qkrOEObVPXwBzm5BjFzMOXc6Sh/view?usp=sharing) |
+| [PV-RCNN++](tools/cfgs/trout_models/pv_rcnn_plusplus.yaml)       |  IJCV’22   | two | 12.4 | 44.9 | 88.5 | 99.9 | [pv_rcnn_plusplus_trout_169M](https://drive.google.com/file/d/1kCMnxVuFaLpKpMWynIiBbFY7-WKGXwyY/view?usp=sharing) |
+| [PillarNet](tools/cfgs/trout_models/pillarnet.yaml)       |  ECCV’22  | one | 73.9 | 10.5 | 88.1 | 99.8 | [pillarnet_trout_169M](https://drive.google.com/file/d/1-aJIIm57NVQayoL8dVOHsp0RsvEVvoi4/view?usp=sharing) |
+| [VoxelNext](tools/cfgs/trout_models/voxelnext.yaml)       |  CVPR’23  | one | 87.2| 3.9 | 85.7 | 99.9 | [voxelnext_trout_89M](https://drive.google.com/file/d/1cKq2eZvMW33U9FSmL-Mww67_X5cTREF6/view?usp=sharing) |
+| [DSVT-Voxel](tools/cfgs/trout_models/dsvt_voxel.yaml)       |  CVPR’23  | one | 6.8 | 62.4 | 54.7 | 95.5 | [dsvt_voxel_trout_99M](https://drive.google.com/file/d/1ogt1wMTLQ1vDvJhzAiHGpQztLJH6wF_9/view?usp=sharing) |
+| [Lion-RWKV](tools/cfgs/trout_models/second_with_lion_rwkv_64dim)       |  NeurIPS’24  | one | 7.6 | 86.9 | 5.5 | 94.7 | [second_with_lion_rwkv_64dim_trout_104M](https://drive.google.com/file/d/1j6-VIsT_YAJLACLVLMxmxSK5cilgEnfV/view?usp=sharing) |
+| [Voxel-Mamba](tools/cfgs/trout_models/voxel_mamba.yaml)       |  NeurIPS’24  | one | 13.6 | 22.9 | 57.8 | 96.2 | [voxel_mamba_trout_252M](https://drive.google.com/file/d/1iIUocUJk-ijk2JOZxjbNGxWS-DdOtE3L/view?usp=sharing) |
+| [ScatterFormer](tools/cfgs/trout_models/scatterformer)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
+| [Hydro3DNet(our)](tools/cfgs/trout_models/hydro3Dnet.yaml)       |  -   | two | 37.9 | 12.5 | 91.7 | 99.9 | [hydro3Dnet_trout_197M](https://drive.google.com/file/d/1qNigiWF-3736sJ2FXcMmpVMW4iROBqnw/view?usp=sharing) |
 
 
 
