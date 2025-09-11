@@ -3,10 +3,10 @@
 This repo is the official implementation of our paper [Hydro3DNet: Spatial-Attention Transformer Networks for Joint Modeling of Hydrological Features and Point Clouds in Complex Waterway Environments](-). Hydro3DNet is an end-to-end multimodal 3D object detection framework specifically designed for fixed waterway environments. 
 
 **Highlights**: 
--[25-0-06] Code of TROUT is released (SOTA).  
+-[25-09-06] Code of TROUT is released (SOTA).  
 
 ## Changelog
-[2025-01-19] `Hydro3DNet` v0.1.0 is released. 
+[2025-09-06] `Hydro3DNet` v0.1.0 is released. 
 
 ## Introduction
 Hydro3DNet integrates hydrological information with LiDAR point clouds through an attention-based Transformer mechanism to enhance feature representation and improve detection performance.:
