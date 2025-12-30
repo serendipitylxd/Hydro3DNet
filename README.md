@@ -41,7 +41,6 @@ Test set
 | [DSVT-Voxel](tools/cfgs/trout_models/dsvt_voxel.yaml)       |  CVPR’23  | one | 6.8 | 62.4 | 54.7 | 95.5 | [dsvt_voxel_trout_99M](https://drive.google.com/file/d/1ogt1wMTLQ1vDvJhzAiHGpQztLJH6wF_9/view?usp=sharing) |
 | [Lion-RWKV](tools/cfgs/trout_models/second_with_lion_rwkv_64dim)       |  NeurIPS’24  | one | 7.6 | 86.9 | 5.5 | 94.7 | [second_with_lion_rwkv_64dim_trout_104M](https://drive.google.com/file/d/1j6-VIsT_YAJLACLVLMxmxSK5cilgEnfV/view?usp=sharing) |
 | [Voxel-Mamba](tools/cfgs/trout_models/voxel_mamba.yaml)       |  NeurIPS’24  | one | 13.6 | 22.9 | 57.8 | 96.2 | [voxel_mamba_trout_252M](https://drive.google.com/file/d/1iIUocUJk-ijk2JOZxjbNGxWS-DdOtE3L/view?usp=sharing) |
-<<<<<<< Updated upstream
 | [ScatterFormer](tools/cfgs/trout_models/scatterformer)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
 | [ScatterFormer](tools/cfgs/trout_models/scatterformer.yaml)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
 | [FSHNet](tools/cfgs/trout_models/scatterformer.yaml)       |  CVPR’25   | one | 16.6 | 16.5 | 29.2 | 25.7 | [fshnet_trout_132M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
