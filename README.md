@@ -118,7 +118,7 @@ bash scripts/dist_test.sh 8 --cfg_file <CONFIG_FILE> --ckpt <CHECKPOINT_FILE>
 Please consider citing our work as follows if it is helpful.
 ```
 @misc{trout2025,
-    title={Hydro3DNet: Spatial-Attention Transformer Networks for Joint Modeling of Hydrological Features and Point Clouds in Complex Waterway Environments},
+    title={Hydro3DNet: Spatial-Attention Transformers for Hydrology-Aware Point Clouds},
     author={Xiaodong Lu, Sudong Xu},
     howpublished = {\url{https://github.com/serendipitylxd/Hydro3DNet}},
     year={2025}
