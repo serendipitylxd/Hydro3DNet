@@ -1,4 +1,4 @@
-# Hydro3DNet: Spatial-Attention Transformer Networks for Joint Modeling of Hydrological Features and Point Clouds in Complex Waterway Environments
+# Hydro3DNet: Spatial-Attention Transformers for Hydrology-Aware Point Clouds
 
 This repo is the official implementation of our paper [Hydro3DNet: Spatial-Attention Transformers for Hydrology-Aware Point Clouds](-). Hydro3DNet is an end-to-end multimodal 3D object detection framework specifically designed for fixed waterway environments. 
 
@@ -7,10 +7,8 @@ This repo is the official implementation of our paper [Hydro3DNet: Spatial-Atten
 
 ## Changelog
 [2025-09-06] `Hydro3DNet` v0.1.0 is released. 
-<<<<<<< Updated upstream
-=======
 [2025-12-30] Added support for the `FSHNet` baseline (configs and training scripts included).
->>>>>>> Stashed changes
+
 
 ## Introduction
 Hydro3DNet integrates hydrological information with LiDAR point clouds through an attention-based Transformer mechanism to enhance feature representation and improve detection performance.:
@@ -45,10 +43,8 @@ Test set
 | [Voxel-Mamba](tools/cfgs/trout_models/voxel_mamba.yaml)       |  NeurIPS’24  | one | 13.6 | 22.9 | 57.8 | 96.2 | [voxel_mamba_trout_252M](https://drive.google.com/file/d/1iIUocUJk-ijk2JOZxjbNGxWS-DdOtE3L/view?usp=sharing) |
 <<<<<<< Updated upstream
 | [ScatterFormer](tools/cfgs/trout_models/scatterformer)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
-=======
 | [ScatterFormer](tools/cfgs/trout_models/scatterformer.yaml)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
 | [FSHNet](tools/cfgs/trout_models/scatterformer.yaml)       |  CVPR’25   | one | 16.6 | 16.5 | 29.2 | 25.7 | [fshnet_trout_132M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
->>>>>>> Stashed changes
 | [Hydro3DNet(our)](tools/cfgs/trout_models/hydro3Dnet.yaml)       |  -   | two | 37.9 | 12.5 | 91.7 | 99.9 | [hydro3Dnet_trout_197M](https://drive.google.com/file/d/1qNigiWF-3736sJ2FXcMmpVMW4iROBqnw/view?usp=sharing) |
 
 
