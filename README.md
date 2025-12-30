@@ -7,6 +7,7 @@ This repo is the official implementation of our paper [Hydro3DNet: Spatial-Atten
 
 ## Changelog
 [2025-09-06] `Hydro3DNet` v0.1.0 is released. 
+
 [2025-12-30] Added support for the `FSHNet` baseline (configs and training scripts included).
 
 
