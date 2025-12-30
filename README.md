@@ -128,10 +128,7 @@ Please consider citing our work as follows if it is helpful.
 ## Acknowledgments
 Hydro3DNet is based on [OpenPCDet](https://github.com/open-mmlab/OpenPCDet).  
 We also thank the CenterPoint, TransFusion, OctFormer, Mamba, and … authors for their efforts.
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
 
 
 
