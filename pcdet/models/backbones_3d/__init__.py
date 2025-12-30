@@ -14,6 +14,11 @@ from .lion_backbone_one_stride import LION3DBackboneOneStride, LION3DBackboneOne
 from .spconv_backbone_voxelnext_sps import VoxelResBackBone8xVoxelNeXtSPS
 from .spconv_backbone_voxelnext2d_sps import VoxelResBackBone8xVoxelNeXt2DSPS
 from .voxel_mamba_waymo import Voxel_Mamba_Waymo
+from .fshnet_light import FSHNet_light
+from .fshnet_base import FSHNet_base
+from .fshnet_nusc import FSHNet_nusc
+from .fshnet_argo2 import FSHNet_argo2
+
 __all__ = {
     'VoxelBackBone8x': VoxelBackBone8x,
     'UNetV2': UNetV2,
@@ -35,5 +40,9 @@ __all__ = {
     'SparseHEDNet2D': SparseHEDNet2D,
     'LION3DBackboneOneStride': LION3DBackboneOneStride,
     'LION3DBackboneOneStride_Sparse': LION3DBackboneOneStride_Sparse,
+    'FSHNet_light': FSHNet_light,
+    'FSHNet_base': FSHNet_base,
+    'FSHNet_nusc': FSHNet_nusc,
+    'FSHNet_argo2': FSHNet_argo2,
     'Voxel_Mamba_Waymo': Voxel_Mamba_Waymo
 }

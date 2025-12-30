@@ -839,3 +839,195 @@ class DistributionFocalLoss(nn.Module):
                + F.cross_entropy(input, dis_right, reduction='none') * weight_right
 
         return loss * weights * self.loss_weight
+
+
+# Code for SparseDynamicAssign
+class DynamicPositiveMask(nn.Module):
+    def __init__(self, cls_weight=1, reg_weight=2, voxel_size=[0.8, 0.8]) -> None:
+        super().__init__()
+        self.cls_weight = cls_weight
+        self.reg_weight = reg_weight
+        self.voxel_size = voxel_size
+
+    def cls_cost(self, pred_cls, pos_mask):
+        cls_score = torch.max(pred_cls * pos_mask, dim=-1)[0]
+        cls_cost = 1 - cls_score
+
+        return cls_cost
+
+    def rwiou_cost(self, pred_reg, gt_reg, mask, r_factor=0.2):
+        isnotnan = (~ torch.isnan(gt_reg)).float().all(dim=-1)
+
+        u, rdiou = box_utils.get_rwiou(pred_reg, gt_reg, r_factor, self.voxel_size)
+
+        focal_reg_loss = 1 - torch.clamp(rdiou, min=0, max=1.0) + u
+        rdiou_loss_src = focal_reg_loss * mask * isnotnan
+
+        return rdiou_loss_src, u
+
+    def gaussian_heatmap(self, distances, radius=2, normalize=True, eps=0.01):
+        sigma = (2 * radius + 1) / 6
+        h = torch.exp(-(distances) / (2 * sigma * sigma))
+        if normalize:
+            h = h / (h.max() + eps)
+        return h
+
+    def forward(self, pred_cls, target_cls, pred_reg, gt_reg, masks, iou_target, r_factor=0.5):
+        with torch.no_grad():
+            cls_cost = self.cls_cost(pred_cls, target_cls)  # [bs, max_num_boxes, dynamic_pos_num]
+            reg_cost, u = self.rwiou_cost(pred_reg, gt_reg, masks, r_factor)  # [bs, max_num_boxes, dynamic_pos_num]
+
+        positive_masks = target_cls.new_zeros(*masks.shape)
+        # positive_masks = self.gaussian_heatmap(distances)
+
+        all_cost = self.cls_weight * cls_cost * masks + self.reg_weight * reg_cost + (1 - masks.float()) * 100
+
+        sort_cost, local_sort_inds = torch.sort(all_cost, dim=-1)
+        # sort_cost, local_sort_inds = torch.sort(masks, dim=-1)
+
+        obj_positive_nums = torch.sum(iou_target, dim=-1).clamp(1).int()  # [bs, max_num_boxes]
+
+        for batch_id in range(pred_cls.shape[0]):
+            box_num = (torch.sum(masks[batch_id], -1) > 0).sum()
+            tmp_positive_nums = obj_positive_nums[batch_id]
+            for box_id in range(box_num):
+                local_pos_inds = local_sort_inds[batch_id][box_id][:tmp_positive_nums[box_id]]
+                positive_masks[batch_id][box_id] = iou_target[batch_id][box_id]
+                positive_masks[batch_id][box_id][local_pos_inds] = 1
+
+        return positive_masks * masks
+
+
+class UpFormerL1Loss(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, regr, gt_regr, mask, **kwargs):
+        """
+        L1 regression loss
+        Args:
+            regr (num_objects x dim)
+            gt_regr (num_objects x dim)
+            mask (num_objects)
+        Returns:
+        """
+        num = mask.float().sum()
+        mask = mask.unsqueeze(-1).expand_as(gt_regr).float()
+        isnotnan = (~ torch.isnan(gt_regr)).float()
+        mask *= isnotnan
+        regr = regr * mask
+        gt_regr = gt_regr * mask
+
+        loss = torch.abs(regr - gt_regr)
+
+        loss = loss.sum(0)
+        # else:
+        #  # D x M x B
+        #  loss = loss.reshape(loss.shape[0], -1)
+
+        # loss = loss / (num + 1e-4)
+        loss = loss / torch.clamp_min(num, min=1.0)
+        # import pdb; pdb.set_trace()
+        return loss.sum()
+
+
+class SlotFormerIoULoss(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, pred_ious, gt_ious, mask):
+        """
+        IoU loss
+        Args:
+            pred_ious (num_objects)
+            gt_ious (num_objects)
+            mask (num_objects)
+        Returns:
+        """
+        pred_ious = pred_ious[mask.bool()]
+        gt_ious = gt_ious[mask.bool()]
+
+        loss = F.l1_loss(pred_ious, gt_ious, reduction='sum')
+
+        loss = loss / torch.clamp_min(mask.sum(), min=1.0)
+
+        return loss
+
+
+class RWIoULoss(nn.Module):
+    def __init__(self, voxel_size) -> None:
+        super().__init__()
+        self.voxel_size = voxel_size
+
+    def forward(self, pred_reg, gt_reg, mask, r_factor=0.5):
+        isnotnan = (~ torch.isnan(gt_reg)).float().all(dim=-1)
+        pred_boxes = pred_reg[mask]
+        gt_boxes = gt_reg[mask]
+        u, rwiou = box_utils.get_rwiou(pred_reg, gt_reg, r_factor, self.voxel_size)
+
+        focal_reg_loss = 1 - torch.clamp(rwiou, min=0, max=1.0) + u
+        rwiou_loss_src = focal_reg_loss * mask * isnotnan
+
+        num = (mask * isnotnan).float().sum()
+        rwiou_loss_src = rwiou_loss_src.sum() / torch.clamp(num, min=1.0)
+
+        return rwiou_loss_src
+
+
+class DCDetIoULoss(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, pred_ious, gt_ious, mask):
+        """
+        IoU loss
+        Args:
+            pred_ious (num_objects)
+            gt_ious (num_objects)
+            mask (num_objects)
+        Returns:
+        """
+        pred_ious = pred_ious[mask.bool()]
+        gt_ious = gt_ious[mask.bool()]
+
+        loss = F.l1_loss(pred_ious, gt_ious, reduction='sum')
+
+        loss = loss / torch.clamp_min(mask.sum(), min=1.0)
+        # import pdb; pdb.set_trace()
+        return loss
+
+
+def quality_focal_loss(pred, target, beta=2.0, threshold=0.01):
+    r"""Quality Focal Loss (QFL) is from `Generalized Focal Loss: Learning
+    Qualified and Distributed Bounding Boxes for Dense Object Detection
+    <https://arxiv.org/abs/2006.04388>`_.
+
+    Args:
+        pred (torch.Tensor): Predicted joint representation of classification
+            and quality (IoU) estimation with shape (N, C), C is the number of
+            classes.
+        target (tuple([torch.Tensor])): Target category label with shape (N,)
+            and target quality label with shape (N,).
+        beta (float): The beta parameter for calculating the modulating factor.
+            Defaults to 2.0.
+
+    Returns:
+        torch.Tensor: Loss tensor with shape (N,).
+    """
+    pred_sigmoid = pred.sigmoid()
+    scale_factor = pred_sigmoid
+    zerolabel = scale_factor.new_zeros(pred.shape)
+    loss = F.binary_cross_entropy_with_logits(
+        pred, zerolabel, reduction="none"
+    ) * scale_factor.pow(beta)
+
+    pos = target >= threshold
+    scale_factor = target[pos] - pred_sigmoid[pos]
+
+    loss[pos] = F.binary_cross_entropy_with_logits(
+        pred[pos], target[pos], reduction="none"
+    ) * scale_factor.abs().pow(beta)
+
+    loss = loss.sum() / pos.sum()
+
+    return loss

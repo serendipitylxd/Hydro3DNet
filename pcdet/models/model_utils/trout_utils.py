@@ -10,38 +10,27 @@ from pytorch3d.ops import sample_farthest_points
 
 def farthest_point_sample(points: torch.Tensor, n_samples: int) -> torch.LongTensor:
     """
-    Farthest Point Sampling (FPS) with PyTorch3D support.
-
-    Args:
-        points: Tensor[N, 3], input 3D points
-        n_samples: int, number of samples to select
-
-    Returns:
-        indices: Tensor[n_samples], indices of sampled points
+    使用 PyTorch3D 实现高效的最远点采样。
+    points: Tensor[N, 3]
+    n_samples: 采样点数
+    返回: 采样点索引 Tensor[n_samples]
     """
     if points.shape[0] < n_samples:
-        # If there are fewer points than requested, pad with zeros
+        # 如果点数不足，填充已有索引
         indices = torch.arange(points.shape[0], device=points.device)
         indices = torch.cat([indices, indices.new_zeros(n_samples - points.shape[0])], dim=0)
         return indices
-
     points_batch = points.unsqueeze(0)  # [1, N, 3]
-    sampled_points, indices = sample_farthest_points(
-        points_batch, K=n_samples, random_start_point=True
-    )
+    sampled_points, indices = sample_farthest_points(points_batch, K=n_samples, random_start_point=True)
     return indices.squeeze(0)  # [n_samples]
 
 
 def calculate_density(points: torch.Tensor, radius: float) -> torch.Tensor:
     """
-    Estimate local density of each point using a radius-based neighborhood count.
-
-    Args:
-        points: Tensor[N, 3], input 3D points
-        radius: float, neighborhood radius threshold
-
-    Returns:
-        density: Tensor[N], number of neighbors for each point (used as density score)
+    基于 radius_graph 统计每个点在 radius 范围内的邻居数，作为密度值。
+    points: Tensor[N, 3]
+    radius: 半径阈值
+    返回: Tensor[N]（float），每个点的邻居数
     """
     edge_index = radius_graph(
         x=points,
@@ -56,92 +45,79 @@ def calculate_density(points: torch.Tensor, radius: float) -> torch.Tensor:
 
 def fps_sample(points: torch.Tensor, num_samples: int) -> torch.Tensor:
     """
-    Perform pure FPS sampling.
-
-    Args:
-        points: Tensor[N, D], input points (at least xyz in first 3 dims)
-        num_samples: int, number of samples
-
-    Returns:
-        sampled_points: Tensor[num_samples, D]
+    仅使用 FPS 采样
     """
     if points.shape[0] == 0:
         return points.new_zeros(num_samples, points.shape[1])
 
+    # 使用优化后的 FPS 实现
     if points.shape[0] >= num_samples:
         indices = farthest_point_sample(points[:, :3], num_samples)
     else:
-        # If not enough points, repeat indices until num_samples is reached
+        # 点数不足时重复填充
         indices = torch.arange(points.shape[0], device=points.device)
         indices = indices.repeat(num_samples // indices.shape[0] + 1)[:num_samples]
 
     return points[indices]
 
-
 def density_sample(points: torch.Tensor, num_samples: int, density_radius: float) -> torch.Tensor:
     """
-    Perform pure density-based sampling.
-
-    Args:
-        points: Tensor[N, D], input points
-        num_samples: int, number of samples
-        density_radius: float, neighborhood radius for density estimation
-
-    Returns:
-        sampled_points: Tensor[num_samples, D]
+    仅使用密度加权采样
     """
     if points.shape[0] == 0:
         return points.new_zeros(num_samples, points.shape[1])
 
-    # Compute density scores for all points
+    # 计算密度
     density = calculate_density(points[:, :3], density_radius)
 
+    # 采样逻辑
     if points.shape[0] >= num_samples:
-        # Sample without replacement
         indices = torch.multinomial(density + 1e-5, num_samples, replacement=False)
     else:
-        # If not enough points, allow replacement
+        # 点数不足时重复采样
         indices = torch.multinomial(density + 1e-5, num_samples, replacement=True)
 
     return points[indices]
-
 
 def hybrid_sample(points: torch.Tensor,
                   num_samples: int,
                   fps_ratio: float,
                   density_radius: float) -> torch.Tensor:
     """
-    Hybrid two-stage sampling: density-weighted random sampling + FPS.
-
-    Args:
-        points: Tensor[N, D], input points (at least xyz in first 3 dims)
-        num_samples: int, total number of samples required
-        fps_ratio: float in [0,1], proportion of samples selected by FPS
-        density_radius: float, radius used for density computation
-
-    Returns:
-        sampled_points: Tensor[num_samples, D]
+    两阶段混合采样：先 密度加权随机采样，再 FPS。
+    points: Tensor[N, D]，至少前三列是 xyz
+    num_samples: 最终采样总数
+    fps_ratio: FPS 占比（0~1）
+    density_radius: 计算密度时的半径
+    返回: Tensor[num_samples, D]
     """
     N = points.shape[0]
 
-    # Compute how many points are taken by FPS vs density sampling
+    # 根据 fps_ratio 计算两阶段各自采样数量
     fps_num = int(num_samples * fps_ratio)
     density_num = num_samples - fps_num
 
-    # ----- Stage 1: Density-weighted random sampling -----
+    # ——— 第一阶段：密度加权随机采样 ———
+    # 1) 计算所有点的密度
     density = calculate_density(points[:, :3], density_radius)
+    # 2) 按密度概率采样 density_num 个点
+    #    (加上 1e-5 防止全零)
     density_idx = torch.multinomial(density + 1e-5, density_num, replacement=False)
     density_pts = points[density_idx]
 
-    # ----- Stage 2: FPS sampling from remaining points -----
+    # ——— 第二阶段：对剩余点进行最远点采样 ———
+    # 1) 在原始 N 点集合中排除已密度采样的点
     mask = torch.ones(N, dtype=torch.bool, device=points.device)
     mask[density_idx] = False
-    remain = points[mask]  # Remaining (N - density_num) points
+    remain = points[mask]  # 剩余 (N - density_num) 点
+    # 2) 在剩余点上执行 FPS
     fps_idx_in_remain = farthest_point_sample(remain[:, :3], fps_num)
     fps_pts = remain[fps_idx_in_remain]
 
-    # Concatenate results to form the final set of samples
+    # 合并两阶段采样结果，保证总数 = density_num + fps_num = num_samples
     return torch.cat([density_pts, fps_pts], dim=0)
+
+
 
 
 class MLP(nn.Module):

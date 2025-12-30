@@ -8,6 +8,55 @@ from ..ops.roiaware_pool3d import roiaware_pool3d_utils
 from . import common_utils
 
 
+def get_rwiou(bboxes1, bboxes2, r_factor=1, voxel_size=[0.8, 0.8]):
+    x1u, y1u, z1u = bboxes1[..., 0], bboxes1[..., 1], bboxes1[..., 2]
+    l1, w1, h1 = torch.exp(bboxes1[..., 3]), torch.exp(bboxes1[..., 4]), torch.exp(bboxes1[..., 5])
+    s1, c1 = bboxes1[..., 6], bboxes1[..., 7]
+    x2u, y2u, z2u = bboxes2[..., 0], bboxes2[..., 1], bboxes2[..., 2]
+    l2, w2, h2 = torch.exp(bboxes2[..., 3]), torch.exp(bboxes2[..., 4]), torch.exp(bboxes2[..., 5])
+    s2, c2 = bboxes2[..., 6], bboxes2[..., 7]
+
+    x1 = x1u * voxel_size[0]
+    y1 = y1u * voxel_size[1]
+    z1 = z1u
+    x2 = x2u * voxel_size[0]
+    y2 = y2u * voxel_size[1]
+    z2 = z2u
+
+    # clamp is necessray to aviod inf.
+    eps = 1e-4
+    l1, w1, h1 = torch.clamp(l1, min=eps, max=30), torch.clamp(w1, min=eps, max=10), torch.clamp(h1, min=eps, max=10)
+    s1, c1 = torch.clamp(s1, min=-1, max=1), torch.clamp(c1, min=-1, max=1)
+    volume_1 = l1 * w1 * h1
+    volume_2 = l2 * w2 * h2
+
+    inter_l = torch.max(x1 - l1 / 2, x2 - l2 / 2)
+    inter_r = torch.min(x1 + l1 / 2, x2 + l2 / 2)
+    inter_t = torch.max(y1 - w1 / 2, y2 - w2 / 2)
+    inter_b = torch.min(y1 + w1 / 2, y2 + w2 / 2)
+    inter_u = torch.max(z1 - h1 / 2, z2 - h2 / 2)
+    inter_d = torch.min(z1 + h1 / 2, z2 + h2 / 2)
+
+    inter_volume = torch.clamp((inter_r - inter_l), min=0) * torch.clamp((inter_b - inter_t), min=0) \
+                   * torch.clamp((inter_d - inter_u), min=0)
+    inter_volume *= (1 - r_factor * torch.abs(s1 - s2) / 2) * (1 - r_factor * torch.abs(c1 - c2) / 2)
+
+    c_l = torch.min(x1 - l1 / 2, x2 - l2 / 2)
+    c_r = torch.max(x1 + l1 / 2, x2 + l2 / 2)
+    c_t = torch.min(y1 - w1 / 2, y2 - w2 / 2)
+    c_b = torch.max(y1 + w1 / 2, y2 + w2 / 2)
+    c_u = torch.min(z1 - h1 / 2, z2 - h2 / 2)
+    c_d = torch.max(z1 + h1 / 2, z2 + h2 / 2)
+
+    inter_diag = (x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2
+    c_diag = torch.clamp((c_r - c_l), min=0) ** 2 + torch.clamp((c_b - c_t), min=0) ** 2 + torch.clamp((c_d - c_u),
+                                                                                                       min=0) ** 2
+
+    union = volume_1 + volume_2 - inter_volume
+    u = (inter_diag) / c_diag
+    rdiou = inter_volume / union
+    return u, rdiou
+
 def in_hull(p, hull):
     """
     :param p: (N, K) test points

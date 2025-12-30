@@ -74,7 +74,8 @@ class Detector3DTemplate(nn.Module):
             input_channels=model_info_dict['num_point_features'],
             grid_size=model_info_dict['grid_size'],
             voxel_size=model_info_dict['voxel_size'],
-            point_cloud_range=model_info_dict['point_cloud_range']
+            point_cloud_range=model_info_dict['point_cloud_range'],
+            class_names=self.class_names,
         )
         model_info_dict['module_list'].append(backbone_3d_module)
         model_info_dict['num_point_features'] = backbone_3d_module.num_point_features
@@ -197,7 +198,6 @@ class Detector3DTemplate(nn.Module):
         recall_dict = {}
         pred_dicts = []
         for index in range(batch_size):
-            #print("batch_dict['batch_box_preds'].shape.__len__()",batch_dict['batch_box_preds'].shape.__len__())
             if batch_dict.get('batch_index', None) is not None:
                 assert batch_dict['batch_box_preds'].shape.__len__() == 2
                 batch_mask = (batch_dict['batch_index'] == index)
@@ -268,7 +268,7 @@ class Detector3DTemplate(nn.Module):
                 final_scores = selected_scores
                 final_labels = label_preds[selected]
                 final_boxes = box_preds[selected]
-
+                    
             recall_dict = self.generate_recall_record(
                 box_preds=final_boxes if 'rois' not in batch_dict else src_box_preds,
                 recall_dict=recall_dict, batch_index=index, data_dict=batch_dict,
@@ -333,6 +333,32 @@ class Detector3DTemplate(nn.Module):
 
         spconv_keys = find_all_spconv_keys(self)
 
+        mapping_dict = {
+        'dense_head.heads_list.0.bbox.0.0.weight': 'dense_head.prediction_head.bbox.0.0.weight',
+        'dense_head.heads_list.0.bbox.0.1.weight': 'dense_head.prediction_head.bbox.0.1.weight',
+        'dense_head.heads_list.0.bbox.0.1.bias': 'dense_head.prediction_head.bbox.0.1.bias',
+        'dense_head.heads_list.0.bbox.0.1.running_mean': 'dense_head.prediction_head.bbox.0.1.running_mean',
+        'dense_head.heads_list.0.bbox.0.1.running_var': 'dense_head.prediction_head.bbox.0.1.running_var' ,
+        'dense_head.heads_list.0.bbox.0.1.num_batches_tracked': 'dense_head.prediction_head.bbox.0.1.num_batches_tracked',
+        'dense_head.heads_list.0.bbox.1.weight': 'dense_head.prediction_head.bbox.1.weight',
+        'dense_head.heads_list.0.bbox.1.bias': 'dense_head.prediction_head.bbox.1.bias',
+        'dense_head.heads_list.0.iou.0.0.weight': 'dense_head.prediction_head.iou.0.0.weight',
+        'dense_head.heads_list.0.iou.0.1.weight': 'dense_head.prediction_head.iou.0.1.weight',
+        'dense_head.heads_list.0.iou.0.1.bias': 'dense_head.prediction_head.iou.0.1.bias',
+        'dense_head.heads_list.0.iou.0.1.running_mean': 'dense_head.prediction_head.iou.0.1.running_mean',
+        'dense_head.heads_list.0.iou.0.1.running_var': 'dense_head.prediction_head.iou.0.1.running_var' ,
+        'dense_head.heads_list.0.iou.0.1.num_batches_tracked': 'dense_head.prediction_head.iou.0.1.num_batches_tracked',
+        'dense_head.heads_list.0.iou.1.weight': 'dense_head.prediction_head.iou.1.weight',
+        'dense_head.heads_list.0.iou.1.bias': 'dense_head.prediction_head.iou.1.bias',
+        'dense_head.heads_list.0.heatmap.0.0.weight': 'dense_head.heatmap_head.0.weight',
+        'dense_head.heads_list.0.heatmap.0.1.weight': 'dense_head.heatmap_head.1.weight',
+        'dense_head.heads_list.0.heatmap.0.1.bias': 'dense_head.heatmap_head.1.bias',
+        'dense_head.heads_list.0.heatmap.0.1.running_mean': 'dense_head.heatmap_head.1.running_mean',
+        'dense_head.heads_list.0.heatmap.0.1.running_var': 'dense_head.heatmap_head.1.running_var',
+        'dense_head.heads_list.0.heatmap.0.1.num_batches_tracked': 'dense_head.heatmap_head.1.num_batches_tracked',
+        'dense_head.heads_list.0.heatmap.1.weight': 'dense_head.heatmap_head.3.weight',
+        'dense_head.heads_list.0.heatmap.1.bias': 'dense_head.heatmap_head.3.bias'}
+
         update_model_state = {}
         for key, val in model_state_disk.items():
             if key in spconv_keys and key in state_dict and state_dict[key].shape != val.shape:
@@ -342,15 +368,20 @@ class Detector3DTemplate(nn.Module):
                 val_native = val.transpose(-1, -2)  # (k1, k2, k3, c_in, c_out) to (k1, k2, k3, c_out, c_in)
                 if val_native.shape == state_dict[key].shape:
                     val = val_native.contiguous()
-                else:
-                    assert val.shape.__len__() == 5, 'currently only spconv 3D is supported'
-                    val_implicit = val.permute(4, 0, 1, 2, 3)  # (k1, k2, k3, c_in, c_out) to (c_out, k1, k2, k3, c_in)
-                    if val_implicit.shape == state_dict[key].shape:
-                        val = val_implicit.contiguous()
+                # else:
+                #     assert val.shape.__len__() == 5, 'currently only spconv 3D is supported'
+                #     val_implicit = val.permute(4, 0, 1, 2, 3)  # (k1, k2, k3, c_in, c_out) to (c_out, k1, k2, k3, c_in)
+                #     if val_implicit.shape == state_dict[key].shape:
+                #         val = val_implicit.contiguous()
 
             if key in state_dict and state_dict[key].shape == val.shape:
                 update_model_state[key] = val
                 # logger.info('Update weight %s: %s' % (key, str(val.shape)))
+
+
+        for new_key, old_key in mapping_dict.items():
+            if old_key in state_dict and new_key in model_state_disk:
+                update_model_state[old_key] = model_state_disk[new_key]
 
         if strict:
             self.load_state_dict(update_model_state)
