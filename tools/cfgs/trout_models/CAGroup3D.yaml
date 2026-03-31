@@ -1,0 +1,136 @@
+CLASS_NAMES: ['Building', 'Fully_loaded_cargo_ship', 'Fully_loaded_container_ship', 'Lock_gate', 'Tree', 'Unladen_cargo_ship']
+
+
+DATA_CONFIG:
+    _BASE_CONFIG_: cfgs/dataset_configs/trout_dataset.yaml
+
+
+VOXEL_SIZE: &VOXEL_SIZE 0.128
+
+N_CLASSES: &N_CLASSES 6
+SEMANTIC_THR: &SEMANTIC_THR 0.15
+POINT_CLOUD_RANGE: &POINT_CLOUD_RANGE [0.0, 0.0, -5.12, 102.4, 102.4, 5.12]
+
+MODEL:
+    NAME: CAGroup3D
+    VOXEL_SIZE: *VOXEL_SIZE
+
+    
+    NORMALIZE_COLOR: False
+
+    SEMANTIC_MIN_THR: 0.05
+    SEMANTIC_ITER_VALUE: 0.02
+    SEMANTIC_THR: *SEMANTIC_THR
+
+    BACKBONE_3D:
+        NAME: BiResNet
+        IN_CHANNELS: 1
+        OUT_CHANNELS: 64
+
+    DENSE_HEAD:
+        NAME: CAGroup3DHead
+        IN_CHANNELS: [64, 128, 256, 512]
+        OUT_CHANNELS: 64
+        SEMANTIC_THR: *SEMANTIC_THR
+        VOXEL_SIZE: *VOXEL_SIZE
+        N_CLASSES: *N_CLASSES
+
+        
+        N_REG_OUTS: 8
+        WITH_YAW: True
+
+        CLS_KERNEL: 9
+        USE_SEM_SCORE: False
+        EXPAND_RATIO: 3
+
+
+        CLASS_VOXEL_SIZES:
+            - [0.685, 0.475, 0.200]   # Building
+            - [2.000, 0.525, 0.225]   # Fully_loaded_cargo_ship
+            - [2.000, 0.530, 0.320]   # Fully_loaded_container_ship
+            - [0.200, 1.150, 0.200]   # Lock_gate
+            - [2.000, 0.875, 0.200]   # Tree
+            - [2.000, 0.700, 0.340]   # Unladen_cargo_ship
+        
+        ASSIGNER:
+            NAME: CAGroup3DAssigner
+            LIMIT: 27
+            TOPK: 18
+            N_SCALES: 4
+
+        LOSS_OFFSET:
+            NAME: SmoothL1Loss
+            BETA: 0.04
+            REDUCTION: mean #sum
+            LOSS_WEIGHT: 1.0 #1.0
+
+        LOSS_BBOX:
+            NAME: IoU3DLoss
+            WITH_YAW: True
+            LOSS_WEIGHT: 1.0
+
+        NMS_CONFIG:
+            SCORE_THR: 0.20
+            NMS_PRE: 100
+            IOU_THR: 0.5
+
+    ROI_HEAD:
+        NAME: CAGroup3DRoIHead
+        CLASS_AGNOSTIC: False
+        NUM_CLASSES: *N_CLASSES
+        MIDDLE_FEATURE_SOURCE: [3]
+        GRID_SIZE: 7
+        VOXEL_SIZE: *VOXEL_SIZE
+        COORD_KEY: 2
+        MLPS: [[64, 128, 128]]
+
+        
+        CODE_SIZE: 7
+        ENCODE_SINCOS: False
+
+        ROI_PER_IMAGE: 128
+        ROI_FG_RATIO: 0.9
+        REG_FG_THRESH: 0.3
+        ROI_CONV_KERNEL: 5
+
+        ENLARGE_RATIO: False
+        USE_IOU_LOSS: False
+        USE_GRID_OFFSET: False
+        USE_SIMPLE_POOLING: True
+        USE_CENTER_POOLING: True
+
+        TEST_SCORE_THR: 0.10
+        TEST_IOU_THR: 0.10
+        
+        POINT_CLOUD_RANGE: *POINT_CLOUD_RANGE
+
+        LOSS_WEIGHTS:
+            RCNN_CLS_WEIGHT: 1.0
+            RCNN_REG_WEIGHT: 1.0
+            RCNN_IOU_WEIGHT: 1.0
+            CODE_WEIGHT: [1., 1., 1., 1., 1., 1., 1.]
+
+    POST_PROCESSING:
+        RECALL_THRESH_LIST: [0.25, 0.5]
+        EVAL_METRIC: trout
+
+
+OPTIMIZATION:
+    BATCH_SIZE_PER_GPU: 2
+    NUM_EPOCHS: 60
+
+    OPTIMIZER: adam_onecycle
+    LR: 0.003
+    WEIGHT_DECAY: 0.01
+    MOMENTUM: 0.9
+
+    MOMS: [0.95, 0.85]
+    PCT_START: 0.1
+    DIV_FACTOR: 10
+    DECAY_STEP_LIST: [35, 45]
+    LR_DECAY: 0.1
+    LR_CLIP: 0.0000001
+
+    LR_WARMUP: False
+    WARMUP_EPOCH: 1
+    GRAD_NORM_CLIP: 10

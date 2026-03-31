@@ -126,9 +126,35 @@ class Detector3DTemplate(nn.Module):
     def build_dense_head(self, model_info_dict):
         if self.model_cfg.get('DENSE_HEAD', None) is None:
             return None, model_info_dict
-        dense_head_module = dense_heads.__all__[self.model_cfg.DENSE_HEAD.NAME](
+
+        dense_head_name = self.model_cfg.DENSE_HEAD.NAME
+
+        # Special handling for CAGroup3DHead:
+        # it does not use the old template field DENSE_HEAD.INPUT_FEATURES
+        if dense_head_name == 'CAGroup3DHead':
+            dense_head_module = dense_heads.__all__[dense_head_name](
+                model_cfg=self.model_cfg.DENSE_HEAD,
+                #input_channels=model_info_dict.get('num_bev_features', None),
+                input_channels=model_info_dict.get('num_bev_features',
+                                                   self.model_cfg.DENSE_HEAD.get('IN_CHANNELS', None)),
+                num_class=self.num_class if not self.model_cfg.DENSE_HEAD.get('CLASS_AGNOSTIC', False) else 1,
+                class_names=self.class_names,
+                grid_size=model_info_dict['grid_size'],
+                point_cloud_range=model_info_dict['point_cloud_range'],
+                predict_boxes_when_training=self.model_cfg.get('ROI_HEAD', False),
+                voxel_size=model_info_dict.get('voxel_size', None)
+            )
+            model_info_dict['module_list'].append(dense_head_module)
+            return dense_head_module, model_info_dict
+
+        # Keep the original logic for all other dense heads
+        dense_head_module = dense_heads.__all__[dense_head_name](
             model_cfg=self.model_cfg.DENSE_HEAD,
-            input_channels=model_info_dict['num_bev_features'] if 'num_bev_features' in model_info_dict else self.model_cfg.DENSE_HEAD.INPUT_FEATURES,
+            input_channels=(
+                model_info_dict['num_bev_features']
+                if 'num_bev_features' in model_info_dict
+                else self.model_cfg.DENSE_HEAD.INPUT_FEATURES
+            ),
             num_class=self.num_class if not self.model_cfg.DENSE_HEAD.CLASS_AGNOSTIC else 1,
             class_names=self.class_names,
             grid_size=model_info_dict['grid_size'],

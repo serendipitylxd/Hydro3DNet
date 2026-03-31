@@ -1031,3 +1031,410 @@ def quality_focal_loss(pred, target, beta=2.0, threshold=0.01):
     loss = loss.sum() / pos.sum()
 
     return loss
+
+
+### cagroup loss utils
+
+def reduce_loss(loss, reduction):
+    """Reduce loss as specified.
+    Args:
+        loss (Tensor): Elementwise loss tensor.
+        reduction (str): Options are "none", "mean" and "sum".
+    Return:
+        Tensor: Reduced loss tensor.
+    """
+    reduction_enum = F._Reduction.get_enum(reduction)
+    # none: 0, elementwise_mean:1, sum: 2
+    if reduction_enum == 0:
+        return loss
+    elif reduction_enum == 1:
+        return loss.mean()
+    elif reduction_enum == 2:
+        return loss.sum()
+
+
+def _expand_onehot_labels(labels, label_weights, label_channels, ignore_index):
+    """Expand onehot labels to match the size of prediction."""
+    bin_labels = labels.new_full((labels.size(0), label_channels), 0)
+    valid_mask = (labels >= 0) & (labels != ignore_index)
+    inds = torch.nonzero(
+        valid_mask & (labels < label_channels), as_tuple=False)
+
+    if inds.numel() > 0:
+        bin_labels[inds, labels[inds]] = 1
+
+    valid_mask = valid_mask.view(-1, 1).expand(labels.size(0),
+                                               label_channels).float()
+    if label_weights is None:
+        bin_label_weights = valid_mask
+    else:
+        bin_label_weights = label_weights.view(-1, 1).repeat(1, label_channels)
+        bin_label_weights *= valid_mask
+
+    return bin_labels, bin_label_weights,
+
+
+def binary_cross_entropy(pred, label, weight=None, reduction='mean', avg_factor=None, class_weight=None,
+                         ignore_index=-100):
+    if pred.dim() != label.dim():
+        label, weight, valid_mask = _expand_onehot_labels(
+            label, weight, pred.size(-1), ignore_index)
+    else:
+        # should mask out the ignored elements
+        valid_mask = ((label >= 0) & (label != ignore_index)).float()
+        if weight is not None:
+            # The inplace writing method will have a mismatched broadcast
+            # shape error if the weight and valid_mask dimensions
+            # are inconsistent such as (B,N,1) and (B,N,C).
+            weight = weight * valid_mask
+        else:
+            weight = valid_mask
+
+    if avg_factor is None and reduction == 'mean':
+        avg_factor = valid_mask.sum().item()
+
+    # weighted element-wise losses
+    weight = weight.float()
+    loss = F.binary_cross_entropy_with_logits(
+        pred, label.float(), pos_weight=class_weight, reduction='none')
+    # do the reduction for the weighted loss
+    loss = loss * weight
+    if avg_factor is None:
+        loss = reduce_loss(loss, reduction)
+    else:
+        if reduction == 'mean':
+            eps = torch.finfo(torch.float32).eps
+            loss = loss.sum() / (avg_factor + eps)
+        elif reduction != 'none':
+            raise ValueError('avg_factor can not be used with reduction="sum"')
+
+    return loss
+
+
+class CrossEntropy(nn.Module):
+    def __init__(self,
+                 use_sigmoid=True,
+                 reduction='mean',
+                 class_weight=None,
+                 loss_weight=1.0,
+                 ignore_index=-100,
+                 ) -> None:
+        super(CrossEntropy, self).__init__()
+        assert use_sigmoid, "Now we only support sigmoid implementation."
+        self.reduction = reduction
+        self.class_weight = class_weight
+        self.loss_weight = loss_weight
+        self.ignore_index = ignore_index
+        if use_sigmoid:
+            self.cls_criterion = binary_cross_entropy
+
+    def forward(self, cls_score, label, weight=None, avg_factor=None, reduction_override=None, ignore_index=None,
+                **kwargs):
+        assert reduction_override in (None, 'none', 'mean', 'sum')
+        reduction = (
+            reduction_override if reduction_override else self.reduction)
+        if ignore_index is None:
+            ignore_index = self.ignore_index
+
+        if self.class_weight is not None:
+            class_weight = cls_score.new_tensor(
+                self.class_weight, device=cls_score.device)
+        else:
+            class_weight = None
+
+        loss_cls = self.loss_weight * self.cls_criterion(
+            cls_score,
+            label,
+            weight,
+            class_weight=class_weight,
+            reduction=reduction,
+            avg_factor=avg_factor,
+            ignore_index=ignore_index,
+            **kwargs)
+        return loss_cls
+
+def weight_reduce_loss(loss, weight=None, reduction='mean', avg_factor=None):
+    """Apply element-wise weight and reduce loss.
+
+    Args:
+        loss (Tensor): Element-wise loss.
+        weight (Tensor): Element-wise weights.
+        reduction (str): Same as built-in losses of PyTorch.
+        avg_factor (float): Avarage factor when computing the mean of losses.
+
+    Returns:
+        Tensor: Processed loss values.
+    """
+    # if weight is specified, apply element-wise weight
+    if weight is not None:
+        loss = loss * weight
+
+    # if avg_factor is not specified, just reduce the loss
+    if avg_factor is None:
+        loss = reduce_loss(loss, reduction)
+    else:
+        # if reduction is mean, then average the loss by avg_factor
+        if reduction == 'mean':
+            loss = loss.sum() / avg_factor
+        # if reduction is 'none', then do nothing, otherwise raise an error
+        elif reduction != 'none':
+            raise ValueError('avg_factor can not be used with reduction="sum"')
+    return loss
+
+def py_sigmoid_focal_loss(pred,
+                          target,
+                          weight=None,
+                          gamma=2.0,
+                          alpha=0.25,
+                          reduction='mean',
+                          avg_factor=None):
+    """PyTorch version of `Focal Loss <https://arxiv.org/abs/1708.02002>`_.
+
+    Args:
+        pred (torch.Tensor): The prediction with shape (N, C), C is the
+            number of classes
+        target (torch.Tensor): The learning label of the prediction.
+        weight (torch.Tensor, optional): Sample-wise loss weight.
+        gamma (float, optional): The gamma for calculating the modulating
+            factor. Defaults to 2.0.
+        alpha (float, optional): A balanced form for Focal Loss.
+            Defaults to 0.25.
+        reduction (str, optional): The method used to reduce the loss into
+            a scalar. Defaults to 'mean'.
+        avg_factor (int, optional): Average factor that is used to average
+            the loss. Defaults to None.
+    """
+    pred_sigmoid = pred.sigmoid()
+    target = target.type_as(pred)
+    pt = (1 - pred_sigmoid) * target + pred_sigmoid * (1 - target)
+    focal_weight = (alpha * target + (1 - alpha) *
+                    (1 - target)) * pt.pow(gamma)
+    loss = F.binary_cross_entropy_with_logits(
+        pred, target, reduction='none') * focal_weight
+    if weight is not None:
+        if weight.shape != loss.shape:
+            if weight.size(0) == loss.size(0):
+                # For most cases, weight is of shape (num_priors, ),
+                #  which means it does not have the second axis num_class
+                weight = weight.view(-1, 1)
+            else:
+                # Sometimes, weight per anchor per class is also needed. e.g.
+                #  in FSAF. But it may be flattened of shape
+                #  (num_priors x num_class, ), while loss is still of shape
+                #  (num_priors, num_class).
+                assert weight.numel() == loss.numel()
+                weight = weight.view(loss.size(0), -1)
+        assert weight.ndim == loss.ndim
+    loss = weight_reduce_loss(loss, weight, reduction, avg_factor)
+    return loss
+
+def py_sigmoid_focal_loss(pred,
+                          target,
+                          weight=None,
+                          gamma=2.0,
+                          alpha=0.25,
+                          reduction='mean',
+                          avg_factor=None):
+    """PyTorch version of `Focal Loss <https://arxiv.org/abs/1708.02002>`_.
+
+    Args:
+        pred (torch.Tensor): The prediction with shape (N, C), C is the
+            number of classes
+        target (torch.Tensor): The learning label of the prediction.
+        weight (torch.Tensor, optional): Sample-wise loss weight.
+        gamma (float, optional): The gamma for calculating the modulating
+            factor. Defaults to 2.0.
+        alpha (float, optional): A balanced form for Focal Loss.
+            Defaults to 0.25.
+        reduction (str, optional): The method used to reduce the loss into
+            a scalar. Defaults to 'mean'.
+        avg_factor (int, optional): Average factor that is used to average
+            the loss. Defaults to None.
+    """
+    pred_sigmoid = pred.sigmoid()
+    target = target.type_as(pred)
+    pt = (1 - pred_sigmoid) * target + pred_sigmoid * (1 - target)
+    focal_weight = (alpha * target + (1 - alpha) *
+                    (1 - target)) * pt.pow(gamma)
+    loss = F.binary_cross_entropy_with_logits(
+        pred, target, reduction='none') * focal_weight
+    if weight is not None:
+        if weight.shape != loss.shape:
+            if weight.size(0) == loss.size(0):
+                # For most cases, weight is of shape (num_priors, ),
+                #  which means it does not have the second axis num_class
+                weight = weight.view(-1, 1)
+            else:
+                # Sometimes, weight per anchor per class is also needed. e.g.
+                #  in FSAF. But it may be flattened of shape
+                #  (num_priors x num_class, ), while loss is still of shape
+                #  (num_priors, num_class).
+                assert weight.numel() == loss.numel()
+                weight = weight.view(loss.size(0), -1)
+        assert weight.ndim == loss.ndim
+    loss = weight_reduce_loss(loss, weight, reduction, avg_factor)
+    return loss
+
+class FocalLoss(nn.Module):
+
+    def __init__(self,
+                 use_sigmoid=True,
+                 gamma=2.0,
+                 alpha=0.25,
+                 reduction='mean',
+                 loss_weight=1.0):
+        """`Focal Loss <https://arxiv.org/abs/1708.02002>`_
+
+        Args:
+            use_sigmoid (bool, optional): Whether to the prediction is
+                used for sigmoid or softmax. Defaults to True.
+            gamma (float, optional): The gamma for calculating the modulating
+                factor. Defaults to 2.0.
+            alpha (float, optional): A balanced form for Focal Loss.
+                Defaults to 0.25.
+            reduction (str, optional): The method used to reduce the loss into
+                a scalar. Defaults to 'mean'. Options are "none", "mean" and
+                "sum".
+            loss_weight (float, optional): Weight of loss. Defaults to 1.0.
+        """
+        super(FocalLoss, self).__init__()
+        assert use_sigmoid is True, 'Only sigmoid focal loss supported now.'
+        self.use_sigmoid = use_sigmoid
+        self.gamma = gamma
+        self.alpha = alpha
+        self.reduction = reduction
+        self.loss_weight = loss_weight
+
+    def forward(self,
+                pred,
+                target,
+                weight=None,
+                avg_factor=None,
+                reduction_override=None):
+        """Forward function.
+
+        Args:
+            pred (torch.Tensor): The prediction.
+            target (torch.Tensor): The learning label of the prediction.
+            weight (torch.Tensor, optional): The weight of loss for each
+                prediction. Defaults to None.
+            avg_factor (int, optional): Average factor that is used to average
+                the loss. Defaults to None.
+            reduction_override (str, optional): The reduction method used to
+                override the original reduction method of the loss.
+                Options are "none", "mean" and "sum".
+
+        Returns:
+            torch.Tensor: The calculated loss
+        """
+        assert reduction_override in (None, 'none', 'mean', 'sum')
+        reduction = (
+            reduction_override if reduction_override else self.reduction)
+        if self.use_sigmoid:
+            # we dont support cuda implementation now
+            num_classes = pred.size(1)
+            # -1 denotes backgroud
+            # TODO(lihe): check this
+            target[target < 0] = num_classes
+            target = F.one_hot(target.long(), num_classes=num_classes + 1)
+            target = target[:, :num_classes]
+            calculate_loss_func = py_sigmoid_focal_loss
+
+            loss_cls = self.loss_weight * calculate_loss_func(
+                pred,
+                target,
+                weight,
+                gamma=self.gamma,
+                alpha=self.alpha,
+                reduction=reduction,
+                avg_factor=avg_factor)
+
+        else:
+            raise NotImplementedError
+        return loss_cls
+
+
+def smooth_l1_loss(pred, target, weight=None, beta=1.0, reduction='mean', avg_factor=None):
+    """Smooth L1 loss.
+
+    Args:
+        pred (torch.Tensor): The prediction.
+        target (torch.Tensor): The learning target of the prediction.
+        beta (float, optional): The threshold in the piecewise function.
+            Defaults to 1.0.
+
+    Returns:
+        torch.Tensor: Calculated loss
+    """
+    assert beta > 0
+    assert pred.size() == target.size() and target.numel() > 0
+    diff = torch.abs(pred - target)
+    loss = torch.where(diff < beta, 0.5 * diff * diff / beta,
+                       diff - 0.5 * beta)
+
+    # if weight is specified, apply element-wise weight
+    if weight is not None:
+        loss = loss * weight
+
+    # if avg_factor is not specified, just reduce the loss
+    if avg_factor is None:
+        loss = reduce_loss(loss, reduction)
+    else:
+        # if reduction is mean, then average the loss by avg_factor
+        if reduction == 'mean':
+            loss = loss.sum() / avg_factor
+        # if reduction is 'none', then do nothing, otherwise raise an error
+        elif reduction != 'none':
+            raise ValueError('avg_factor can not be used with reduction="sum"')
+    return loss
+
+
+class SmoothL1Loss(nn.Module):
+    """Smooth L1 loss.
+
+    Args:
+        beta (float, optional): The threshold in the piecewise function.
+            Defaults to 1.0.
+        reduction (str, optional): The method to reduce the loss.
+            Options are "none", "mean" and "sum". Defaults to "mean".
+        loss_weight (float, optional): The weight of loss.
+    """
+
+    def __init__(self, beta=1.0, reduction='mean', loss_weight=1.0):
+        super(SmoothL1Loss, self).__init__()
+        self.beta = beta
+        self.reduction = reduction  ## 'sum'
+        self.loss_weight = loss_weight
+
+    def forward(self,
+                pred,
+                target,
+                weight=None,
+                avg_factor=None,
+                reduction_override=None,
+                **kwargs):
+        """Forward function.
+
+        Args:
+            pred (torch.Tensor): The prediction.
+            target (torch.Tensor): The learning target of the prediction.
+            weight (torch.Tensor, optional): The weight of loss for each
+                prediction. Defaults to None.
+            avg_factor (int, optional): Average factor that is used to average
+                the loss. Defaults to None.
+            reduction_override (str, optional): The reduction method used to
+                override the original reduction method of the loss.
+                Defaults to None.
+        """
+        assert reduction_override in (None, 'none', 'mean', 'sum')
+        reduction = (
+            reduction_override if reduction_override else self.reduction)
+        loss_bbox = self.loss_weight * smooth_l1_loss(
+            pred,
+            target,
+            weight,
+            beta=self.beta,
+            reduction=reduction,  ## 'sum'
+            avg_factor=avg_factor,
+            **kwargs)
+        return loss_bbox

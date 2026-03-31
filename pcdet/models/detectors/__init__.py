@@ -23,6 +23,8 @@ from .fusion import FUSION
 from .voxel_rcnn_centerhead import VoxelRCNNCENTERHEAD
 from .voxel_trout import VOXELTROUT
 from .hydro_3d_net import Hydro3DNet
+from .cagroup3d import CAGroup3D
+from .MAFF_Net import MAFF_Net
 
 __all__ = {
     'Detector3DTemplate': Detector3DTemplate,
@@ -51,6 +53,8 @@ __all__ = {
     'VoxelRCNNCENTERHEAD': VoxelRCNNCENTERHEAD,
     'VOXELTROUT': VOXELTROUT,
     'Hydro3DNet': Hydro3DNet,
+    'CAGroup3D': CAGroup3D,
+    'MAFF_Net': MAFF_Net,
 
 
 }

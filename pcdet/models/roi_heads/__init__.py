@@ -11,6 +11,7 @@ from .ct3d_head import CT3DHead
 from .pgrcnn_head  import PGRCNNHead
 from .ct3d_plusplus_head import CT3DPlusPlusHead
 from .hydro_former_head import HydroFormerHead
+from .cagroup_roi_head import CAGroup3DRoIHead
 __all__ = {
     'RoIHeadTemplate': RoIHeadTemplate,
     'PartA2FCHead': PartA2FCHead,
@@ -25,4 +26,5 @@ __all__ = {
     'CT3DHead': CT3DHead,
     'CT3DPlusPlusHead': CT3DPlusPlusHead,
     'HydroFormerHead': HydroFormerHead,
+    'CAGroup3DRoIHead': CAGroup3DRoIHead
 }

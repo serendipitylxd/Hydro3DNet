@@ -14,6 +14,7 @@ from .anchor_head_rdiou_3cat import AnchorHeadRDIoU_3CAT
 from .voxelnext_head_onnx import VoxelNeXtHeadONNX
 from .voxelnext_head_maxpool import VoxelNeXtHeadMaxPool
 from .voxelnext_head_iou import VoxelNeXtHeadIoU
+from .cagroup_head import CAGroup3DHead
 
 __all__ = {
     'AnchorHeadTemplate': AnchorHeadTemplate,
@@ -31,5 +32,6 @@ __all__ = {
     'AnchorHeadRDIoU_3CAT': AnchorHeadRDIoU_3CAT,
     'VoxelNeXtHeadONNX': VoxelNeXtHeadONNX,
     'VoxelNeXtHeadMaxPool': VoxelNeXtHeadMaxPool,
-    'VoxelNeXtHeadIoU': VoxelNeXtHeadIoU
+    'VoxelNeXtHeadIoU': VoxelNeXtHeadIoU,
+    'CAGroup3DHead': CAGroup3DHead
 }

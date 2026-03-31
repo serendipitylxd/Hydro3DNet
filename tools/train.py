@@ -1,3 +1,20 @@
+import warnings
+
+_original_showwarning = warnings.showwarning
+
+def _silent_minkowski_warnings(message, category, filename, lineno, file=None, line=None):
+    text = warnings.formatwarning(message, category, filename, lineno, line)
+    if (
+        "MinkowskiSPMMAverageFunction" in text
+        or "MinkowskiInterpolationFunction" in text
+        or "MinkowskiConvolutionFunction" in text
+        or "coordinates implicitly converted to torch.IntTensor" in text
+    ):
+        return
+    _original_showwarning(message, category, filename, lineno, file=file, line=line)
+
+warnings.showwarning = _silent_minkowski_warnings
+
 import _init_path
 import argparse
 import datetime
