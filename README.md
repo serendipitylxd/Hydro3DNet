@@ -7,15 +7,13 @@ This repo is the official implementation of our paper [Hydro3DNet: Spatial-Atten
 
 ## Changelog
 [2025-09-06] `Hydro3DNet` v0.1.0 is released. 
-<<<<<<< Updated upstream
 
 [2025-12-30] Added support for the `FSHNet` baseline (configs and training scripts included).
 
-=======
-[2025-12-30] Added support for the `FSHNet` baseline (configs and training scripts included).
 [2025-03-25] Added support for the `MAFF-Net` baseline (configs and training scripts included).
+
 [2025-03-29] Added support for the `CAGroup3D` baseline (configs and training scripts included).
->>>>>>> Stashed changes
+
 
 ## Introduction
 Hydro3DNet integrates hydrological information with LiDAR point clouds through an attention-based Transformer mechanism to enhance feature representation and improve detection performance.:
@@ -48,16 +46,10 @@ Test set
 | [DSVT-Voxel](tools/cfgs/trout_models/dsvt_voxel.yaml)       |  CVPR’23  | one | 6.8 | 62.4 | 54.7 | 95.5 | [dsvt_voxel_trout_99M](https://drive.google.com/file/d/1ogt1wMTLQ1vDvJhzAiHGpQztLJH6wF_9/view?usp=sharing) |
 | [Lion-RWKV](tools/cfgs/trout_models/second_with_lion_rwkv_64dim)       |  NeurIPS’24  | one | 7.6 | 86.9 | 5.5 | 94.7 | [second_with_lion_rwkv_64dim_trout_104M](https://drive.google.com/file/d/1j6-VIsT_YAJLACLVLMxmxSK5cilgEnfV/view?usp=sharing) |
 | [Voxel-Mamba](tools/cfgs/trout_models/voxel_mamba.yaml)       |  NeurIPS’24  | one | 13.6 | 22.9 | 57.8 | 96.2 | [voxel_mamba_trout_252M](https://drive.google.com/file/d/1iIUocUJk-ijk2JOZxjbNGxWS-DdOtE3L/view?usp=sharing) |
-<<<<<<< Updated upstream
-| [ScatterFormer](tools/cfgs/trout_models/scatterformer)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
-| [ScatterFormer](tools/cfgs/trout_models/scatterformer.yaml)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
-| [FSHNet](tools/cfgs/trout_models/scatterformer.yaml)       |  CVPR’25   | one | 16.6 | 16.5 | 29.2 | 25.7 | [fshnet_trout_132M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
-=======
 | [ScatterFormer](tools/cfgs/trout_models/scatterformer.yaml)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
 | [FSHNet](tools/cfgs/trout_models/fshnet.yaml)       |  CVPR’25   | one | 16.6 | 16.5 | 29.2 | 25.7 | [fshnet_trout_132M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
 | [MAFF-Net](tools/cfgs/trout_models/MAFF-Net.yaml)       |  RL’25   | one | 20.9 | 45.7 | 27.9 | 71.3 | [MAFF-Net_trout_132M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
 | [CAGroup3D](tools/cfgs/trout_models/CAGroup3D.yaml)       |  CVPR’25   | one | 13.3 | 53.4 | 48.7 | 25.6 | [CAGroup3D_trout_132M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
->>>>>>> Stashed changes
 | [Hydro3DNet(our)](tools/cfgs/trout_models/hydro3Dnet.yaml)       |  -   | two | 37.9 | 12.5 | 91.7 | 99.9 | [hydro3Dnet_trout_197M](https://drive.google.com/file/d/1qNigiWF-3736sJ2FXcMmpVMW4iROBqnw/view?usp=sharing) |
 
 
@@ -142,10 +134,7 @@ Please consider citing our work as follows if it is helpful.
 ## Acknowledgments
 Hydro3DNet is based on [OpenPCDet](https://github.com/open-mmlab/OpenPCDet).  
 We also thank the CenterPoint, TransFusion, OctFormer, Mamba, and … authors for their efforts.
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
 
 
 
