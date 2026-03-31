@@ -49,7 +49,7 @@ Test set
 | [ScatterFormer](tools/cfgs/trout_models/scatterformer.yaml)       |  ECCV’24   | one | 12.4 | 12.7 | 7.4 | 95.4 | [scatterformer_trout_147M](https://drive.google.com/file/d/13auzDMeYQdSX8laIPZ7foJJTVabzRPgs/view?usp=sharing) |
 | [FSHNet](tools/cfgs/trout_models/fshnet.yaml)       |  CVPR’25   | one | 16.6 | 16.5 | 29.2 | 25.7 | [fshnet_trout_132M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
 | [MAFF-Net](tools/cfgs/trout_models/MAFF-Net.yaml)       |  RL’25   | two | 20.9 | 45.7 | 27.9 | 71.3 | [MAFF-Net_trout_132M](https://drive.google.com/file/d/1sI_pasMPdIP4EOWofgqTBPHF6PyQX6ZP/view?usp=sharing) |
-| [CAGroup3D](tools/cfgs/trout_models/CAGroup3D.yaml)       |  CVPR’25   | two | 13.3 | 53.4 | 48.7 | 25.6 | [CAGroup3D_trout_1024M](https://drive.google.com/file/d/1ainrTYCQjtpjnowCYPEuQRGNsW3c54Rk/view?usp=sharing) |
+| [CAGroup3D](tools/cfgs/trout_models/CAGroup3D.yaml)       |  CVPR’25   | two | 13.3 | 53.4 | 48.7 | 25.6 | [CAGroup3D_trout_954M](https://drive.google.com/file/d/1djKI2NiTsIefY15H9hlx3vvJ1l5uJ1iN/view?usp=sharing) |
 | [Hydro3DNet(our)](tools/cfgs/trout_models/hydro3Dnet.yaml)       |  -   | two | 37.9 | 12.5 | 91.7 | 99.9 | [hydro3Dnet_trout_197M](https://drive.google.com/file/d/1qNigiWF-3736sJ2FXcMmpVMW4iROBqnw/view?usp=sharing) |
 
 
