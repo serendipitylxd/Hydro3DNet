@@ -67,9 +67,7 @@ Please refer to [INSTALL.md](docs/INSTALL.md) for installation.
 
 ### Dataset Preparation
 
-For detailed information about the TROUT dataset, including dataset overview, sensor configuration, acquisition setup, coordinate system, annotation format, and usage instructions, please refer to:
-
-[TROUT Dataset Documentation](docs/TROUT_DATASET.md)
+For detailed information about the TROUT dataset, including dataset overview, sensor configuration, acquisition setup, coordinate system, annotation format, and usage instructions, please refer to: [TROUT_DATASET.md](docs/TROUT_DATASET.md)
 
 For environment setup and data preparation procedures, please follow the instructions in [GETTING_STARTED.md](docs/GETTING_STARTED.md). We adopt the same data generation process.
 
