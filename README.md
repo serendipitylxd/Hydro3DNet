@@ -66,7 +66,12 @@ We hope that our Hydro3DNet can provide a potential group-free solution for effi
 Please refer to [INSTALL.md](docs/INSTALL.md) for installation.
 
 ### Dataset Preparation
-Please follow the instructions from [GETTING_STARTED.md](docs/GETTING_STARTED.md). We adopt the same data generation process.
+
+For detailed information about the TROUT dataset, including dataset overview, sensor configuration, acquisition setup, coordinate system, annotation format, and usage instructions, please refer to:
+
+[TROUT Dataset Documentation](docs/TROUT_DATASET.md)
+
+For environment setup and data preparation procedures, please follow the instructions in [GETTING_STARTED.md](docs/GETTING_STARTED.md). We adopt the same data generation process.
 
 ### Generate Hilbert Template
 ```
